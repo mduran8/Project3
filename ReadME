@@ -1,0 +1,76 @@
+ Program 2 CS 478
+ Authors: Melissa Duran, Heather Morgan
+ Data Encryption Standard: implementation of DES cryptography system
+ Version 1.0
+ Date: April 10, 2018
+
+
+How to use:
+run make with following command
+./make
+*note* check file permissions must have "Allow executing file as program" checked
+
+Then:
+code for encryption:
+
+```
+./run -e -i <hex> -k <hex> -p <name of plaintextfile> -o <name of prefered output file>
+```
+code for decryption:
+```
+./run -d -i <hex> -k <hex> -p <name of ciphertextfile> -o <name of prefered output file>
+```
+For Randomization:
+If you would like to create a random hex number or output filename please type R after the flags.
+
+For best results(a.K.a. to get it to work) all flags must have spaces behind them before input info.
+
+command-line parameters definitions:
+
+-e encryption needs no input after
+-d decryption needs no input after 
+-i iv for cbc encryption 
+(must be 16 characters long and hexadecimal values, F.Y.I values less than E must have and 0 infront example 8 =  08)
+-k key for for encryption
+(must be 16 characters long and hexadecimal values, F.Y.I values less than E must have and 0 infront example 8 =  08)
+-p plaintext name for file (include extension .txt)
+-c ciphertext name for file (include extension .txt)
+-o out put type in output file name you would like (include extension .txt)
+
+Examples for encryption/decryption not random:
+ -e -i 2bc3b915a236768c -k 6b23b715a736778c -p plaintext.txt -o output.txt
+ -d -i 2bc3b915a236768c -k 6b23b715a736778c -p ciphertext.txt -o output.txt
+
+Examples for encryption random:
+-e -i R -k R -p plaintext.txt -o R
+
+
+The final output:
+This program will output if there is an error with input:
+If Random is choosen it will output the random variable (this will be based on the random variable)
+        example: 
+        -k 6b23b715a736778c
+        -i 6b23b715a736778c
+        -o output.txt
+The final output will be if encryption is called it will output the openssl code.
+        example:
+        openssl enc -des-cbc -in text.txt -out cipher.txt.enc -nosalt -iv 2bc3b915a236768c -K 96b74d565d3ed9c5
+
+division of work:
+Heather:
+I worked on Key class and was able to get accurate output based on hand calculations.
+DES worked encryption and decryption the Pbox, sbox, expansion DXor.
+created the the following conversion functions sTobs, and XOR;
+main validation and file input and output.
+cbc uses a variation of XOR and worked on the decryption of cbc.
+
+Melissa:
+Developed cbc class
+created main and the arguement structures.
+created a conversion btos
+
+
+
+
+
+
