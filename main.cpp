@@ -18,18 +18,13 @@ debug = 2 to check decryption of session key
 #include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
+#include <openssl/engine.h>
 #include "DESmath.h"
 #include "cbc.h"
 
 
 /*
 */
-
-struct evpBuf {
-	int size;
-	unsigned char* text;
-};
-
 using namespace std;
 
 bool fexists(const std::string& filename);
@@ -143,18 +138,91 @@ int decryptedtext_len, ciphertext_len;
 /**********
 Decrypt the session key
 **********/
-evpBuf evpSessionKey;
-size_t tempLength, outLength;
-EVP_PKEY* EVPubKey;
-EVP_PKEY_CTX* ctx;
-BIO* bio;
 
-
-//Copy the session key into a const char array
-int n =mySessionKeyString.length()+1;
+EVP_PKEY_CTX *ctx;
 unsigned char *out;
-unsigned char *in;
-size_t inlength;
+unsigned const char *in;
+size_t outlen, inlen; 
+EVP_PKEY *key;
+FILE * EVPsessionKey_File = fopen ( sessionKey.c_str() , "r" );
+FILE * EVPPublicKey_File = fopen ( publicKey.c_str() , "r" );
+
+in = reinterpret_cast<unsigned const char *>(mySessionKeyString.c_str());
+
+if (EVPPublicKey_File==NULL) {fputs ("File error: Public Key Could not be opened",stderr); exit (1);}
+if (EVPsessionKey_File==NULL) {fputs ("File error: Session Key Could not be opened",stderr); exit (1);}
+
+//Initialize enviornment
+key = PEM_read_PUBKEY(EVPPublicKey_File, NULL, NULL, NULL);
+ctx = EVP_PKEY_CTX_new(key,NULL);
+ if (!ctx) {fputs ("EVP error: New CTX failed",stderr); exit (1);}
+ if (EVP_PKEY_encrypt_init(ctx) <= 0) {fputs ("EVP error: Init CTX failed",stderr); exit (1);}
+ if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_NO_PADDING) <= 0){fputs ("EVP error: Padding failed",stderr); exit (1);}
+
+
+ /* Determine buffer length */
+ if (EVP_PKEY_encrypt(ctx, NULL, &outlen, in, mySessionKeyString.size()-1) <= 0)
+
+ out = (unsigned char *)OPENSSL_malloc(outlen);
+
+ if (!out){fputs ("EVP error: Init CTX failed",stderr); exit (1);}
+ 
+cout<< "I am here"<<endl;
+ if (EVP_PKEY_encrypt(ctx, out, &outlen, in, mySessionKeyString.size()-1) <= 0){fputs ("EVP error: encryption failed",stderr); exit (1);}
+
+ /* Encrypted data is outlen bytes written to buffer out */
+/*
+
+	EVP_PKEY_CTX* ctx;
+	unsigned char *out;
+	unsigned char *in; //in = session key, out = decrypted session key
+	size_t outlength, inlength; //Length of in and our
+	EVP_PKEY* EVPubKey;
+
+	//Read ifstreams as array of char elements
+	FILE * EVPsessionKey_File = fopen ( sessionKey.c_str() , "r" );
+	FILE * EVPPublicKey_File = fopen ( publicKey.c_str() , "r" );
+
+
+	/*Set up context*/
+/*	if (EVPPublicKey_File==NULL) {fputs ("File error: Public Key Could not be opened",stderr); exit (1);}
+	if (EVPsessionKey_File==NULL) {fputs ("File error: Session Key Could not be opened",stderr); exit (1);}
+
+	// Get size of session key 
+	fseek (EVPsessionKey_File , 0 , SEEK_END);
+	inlength = ftell (EVPsessionKey_File);
+	fseek (EVPsessionKey_File , 0 , SEEK_SET);
+	in = (unsigned char*) malloc(inlength);
+	fread(in, 1, inlength, EVPsessionKey_File);
+
+	/* Determine buffer length*/ 
+/*	EVPubKey = PEM_read_PUBKEY(EVPPublicKey_File, NULL, NULL, NULL);
+	ctx = EVP_PKEY_CTX_new(EVPubKey,NULL);
+	if (!ctx) {fputs ("CTX error",stderr); exit (1);}
+	if (EVP_PKEY_encrypt_init(ctx) <= 0){fputs ("CTX error initializing encrypt",stderr); exit (1);}
+	if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_NO_PADDING) <= 0){fputs ("CTX error with padding",stderr); exit (1);}
+
+
+	
+
+	/*Determine buffer length*/
+ /*	if (EVP_PKEY_encrypt(ctx, NULL, &outlength, in, inlength) <= 0)
+	out = (unsigned char *)OPENSSL_malloc(outlength);
+	if (!out){fputs ("EVP error initializing out buffer",stderr); exit (1);}
+	cout<< "I'm here"<<endl;
+	/*Encrypt Session Key*/
+/*	if (EVP_PKEY_encrypt(ctx, out, &outlength, in, inlength) <= 0){fputs ("EVP error encrypting session key ",stderr); exit (1);}
+	
+	cout<< "I'm here"<<endl;
+
+        
+	//Write it on to a file
+	//ofstream dSessionKeyFile ("decryptedSesionKey.txt");
+	//dSessionKeyFile << out;
+
+	
+/*
+
 
 inlength = mySessionKeyString.size();
 in = mySessionKeyString.c_str();
