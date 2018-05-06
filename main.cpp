@@ -7,8 +7,9 @@ debug = 2 to check decryption of session key
 #include <iostream>
 #include <iterator>
 #include <iomanip>
-#include <string>
+#include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <fstream>
 #include <utility>
 #include <bitset>
@@ -16,6 +17,7 @@ debug = 2 to check decryption of session key
 #include <openssl/conf.h>
 #include <openssl/err.h>
 #include <openssl/pem.h>
+#include <openssl/rsa.h>
 #include "DESmath.h"
 #include "cbc.h"
 
@@ -23,6 +25,10 @@ debug = 2 to check decryption of session key
 /*
 */
 
+struct evpBuf {
+	int size;
+	unsigned char* text;
+};
 
 using namespace std;
 
@@ -137,10 +143,34 @@ int decryptedtext_len, ciphertext_len;
 /**********
 Decrypt the session key
 **********/
+evpBuf evpSessionKey;
+size_t tempLength;
+EVP_PKEY* EVPubKey;
+EVP_PKEY_CTX* ctx;
+BIO* bio;
 
 
+//Copy the session key into a const char array
+int n =mySessionKeyString.length()+1;
+unsigned char const tempSessionKeyText[n];
+strcpy(tempSessionKeyText,mySessionKeyString.c_str());
 
+bio = BIO_new_file(publicKey.c_str(), "rb");
+EVPubKey = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
+BIO_free_all(bio);
 
+ctx =  EVP_PKEY_CTX_new(EVPubKey, NULL);
+EVP_PKEY_encrypt_init(ctx);
+EVP_PKEY_CTX_set_rsa_padding(ctx,RSA_PKCS1_PSS_PADDING);
+EVP_PKEY_encrypt(ctx, NULL, &tempLength, tempSessionKeyText, mySessionKeyString.size());
+
+/*evpSessionKey.text = new unsigned char [tempLength];
+
+EVP_PKEY_encrypt(ctx, NULL, &tempLength, (const unsigned char) mySessionKeyString.c_str() , mySessionKeyString.size());
+result.length = tempLength;*/
+/**********
+Close everything that was opened
+**********/
 
 	//Close all the ofstream  
 	outSessionKey.close();
