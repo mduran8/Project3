@@ -144,7 +144,7 @@ int decryptedtext_len, ciphertext_len;
 Decrypt the session key
 **********/
 evpBuf evpSessionKey;
-size_t tempLength;
+size_t tempLength, outLength;
 EVP_PKEY* EVPubKey;
 EVP_PKEY_CTX* ctx;
 BIO* bio;
@@ -152,17 +152,27 @@ BIO* bio;
 
 //Copy the session key into a const char array
 int n =mySessionKeyString.length()+1;
-unsigned char const tempSessionKeyText[n];
-strcpy(tempSessionKeyText,mySessionKeyString.c_str());
+unsigned char *out;
+unsigned char *in;
+size_t inlength;
+
+inlength = mySessionKeyString.size();
+in = mySessionKeyString.c_str();
+
 
 bio = BIO_new_file(publicKey.c_str(), "rb");
 EVPubKey = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
 BIO_free_all(bio);
 
 ctx =  EVP_PKEY_CTX_new(EVPubKey, NULL);
-EVP_PKEY_encrypt_init(ctx);
+if (!ctx) cout<< "Error"<<endl;
+
+if (EVP_PKEY_encrypt_init(ctx)<= 0) cout<< "Error"<<endl;
+
 EVP_PKEY_CTX_set_rsa_padding(ctx,RSA_PKCS1_PSS_PADDING);
-EVP_PKEY_encrypt(ctx, NULL, &tempLength, tempSessionKeyText, mySessionKeyString.size());
+
+//Determine Buffer Length
+if(EVP_PKEY_encrypt(ctx, NULL, &tempLength, in, inlength)<= 0) cout<< "Error"<<endl;
 
 /*evpSessionKey.text = new unsigned char [tempLength];
 
