@@ -7,11 +7,11 @@ cbc::cbc (){}
 std::string cbc::runCbc (std::string plainText, std::string IV, std::string K, std::string eORd){
     std::string result;
     std::string binaryIv = mathD.HexToBinary(IV);
-    std::string binaryKey = mathD.HexToBinary(K);
+
     if (eORd == "-e")
-        result = encryptCbc(plainText, binaryIv, binaryKey);
+        result = encryptCbc(plainText, binaryIv, K);
     else if(eORd == "-d")
-        result = decryptCbc(plainText, binaryIv, binaryKey);
+        result = decryptCbc(plainText, binaryIv, K);
     else{ 
 	std::cerr<<"invalid cryption option"<<std::endl;
 	exit(1);

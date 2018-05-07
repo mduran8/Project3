@@ -41,12 +41,12 @@ int main(int argc, char* argv[]){
     string publicKey = argv [4];//public key
     string privateKey = argv [5];//private key
     string newSessionKey = "plainTextSessionKey.txt";
-    string cipheredText = "cipheredText.txt";
+    string cipheredText = argv[6];
     string signature = "signature.txt";
 
     //variables
     int debug = 2;
-int decryptedtext_len, ciphertext_len;
+    int decryptedtext_len, ciphertext_len;
     ifstream myfile (textFile,ios::binary);
     ifstream mySessionKey (sessionKey,ios::binary);
     ifstream myPublicKey (publicKey,ios::binary);
@@ -177,9 +177,32 @@ Encrypt using DES
         	randomIV << hexNums[rand()%16];
 	string IV = randomIV.str();
  	outIV << IV;
+    
+    //Convert plaintext to binary
+    stringstream textToBinary;
+    for (std::size_t i = 0; i < myString.size(); i++){
+        textToBinary << bitset<8>(myString.c_str()[i]);
+    }
+    
+    //Run CBC & Convert back to text
+    cbc Encrypt;
+    string cipher = Encrypt.runCbc(append.str(), IV, textToBinary.str(), typeCryption);
+    
+    stringstream convert (cipher);
+    string finalCipher;
+    while(convert.good()){
+        bitset<8> cipherInBinary;
+        convert>>cipherInBinary;
+        char c = cipherInBinary.to_ulong();
+        finalCipher += c;
+    }
+    outCipheredText<<finalCipher;
+    
 	if (debug == 2) {
 		cout<< "\n Session Key: "<< append.str()<<endl;
 		cout<< "\n IV: " <<IV<<endl;
+        cout<< "\n Plain Text in binary: "<<textToBinary.str()<<endl;
+        cout<< "\n Encrypted Text: "<<finalCipher<<endl;
 	}
 /**********
 Close everything that was opened
@@ -190,7 +213,7 @@ Close everything that was opened
 	outSessionKey.close();
 	outCipheredText.close();
 	outCipheredText.close();
-
+    
     return 0;
 }//end of main
 

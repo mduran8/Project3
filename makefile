@@ -7,7 +7,7 @@ main.o:main.cpp
 	g++ -std=c++11 -c main.cpp -lssl  -lcrypto
 
 cbc.o:cbc.cpp cbc.h
-	g++ -std=c++11 -c cbc.cpp s
+	g++ -std=c++11 -c cbc.cpp 
 
 Des.o:Des.cpp Des.h
 	g++ -std=c++11 -c Des.cpp
