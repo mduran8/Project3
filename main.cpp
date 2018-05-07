@@ -36,17 +36,16 @@ int main(int argc, char* argv[]){
 /******** Store variables given from terminal ********************/
     //inputs
     string typeCryption= argv[1]; //encryption or decryption
-    string IV = argv [2];
-    string textFile = argv[3];//plain text message
-    string sessionKey = argv [4];//session key
-    string publicKey = argv [5];//public key
-    string privateKey = argv [6];//private key
+    string textFile = argv[2];//plain text message
+    string sessionKey = argv [3];//session key
+    string publicKey = argv [4];//public key
+    string privateKey = argv [5];//private key
     string newSessionKey = "plainTextSessionKey.txt";
     string cipheredText = "cipheredText.txt";
     string signature = "signature.txt";
 
     //variables
-    int debug = 1;
+    int debug = 2;
 int decryptedtext_len, ciphertext_len;
     ifstream myfile (textFile,ios::binary);
     ifstream mySessionKey (sessionKey,ios::binary);
@@ -62,11 +61,6 @@ int decryptedtext_len, ciphertext_len;
     if(!(typeCryption == "-e" ||typeCryption == "-d")){
 	cerr<< "Please check the readme file for correct use program"<<endl<<"please choose encyrption(-e) or decyrption(-d)"<<endl;
 	exit(1);
-    }
-    //Check IV is valid
-    if(IV.size() != 16){
-	cerr<<"Please check IV incorrect hexidecimal size"<<endl;
-  	exit(1);
     }
     //Check textfile input is valid
     if(textFile.substr(textFile.size()-4,4) !=".txt"){
@@ -107,7 +101,6 @@ int decryptedtext_len, ciphertext_len;
 
     if (debug==1){
 	cout<<"decrypt/encrypt: "<<typeCryption<<endl;
-	cout<<"IV: "<<IV<<endl;
 	cout<<"Plain Text File name: "<<textFile<<endl;
 	cout<<"Session Key File name: "<<sessionKey<<endl;
 	cout<<"Public Key File name: "<<publicKey<<endl;
@@ -163,16 +156,37 @@ Decrypt the session key
 	ofstream dSessionKeyFile ("decryptedSesionKey.txt");
 	dSessionKeyFile << out;
 
-/*Close files & Buffers*/
+/*Close files */
 	fclose(EVPsessionKey_File);
 	fclose(EVPPublicKey_File);
+/**********
+Encrypt using DES
+**********/
+	
+	stringstream append;
+	for (std::size_t i = 0; i < 9; i++){
+      		append << bitset<8>(out[i]);
+  	}
 
+	//Generate IV & Store it in file
+	stringstream randomIV;
+	ofstream outIV ("iv.txt",ios::binary);
+    	char hexNums[] = {'1','2','3','4','5','6','7','8','9','A','B','C','D','F','E'};
 
+ 	for(int i = 0; i<16; i++)
+        	randomIV << hexNums[rand()%16];
+	string IV = randomIV.str();
+ 	outIV << IV;
+	if (debug == 2) {
+		cout<< "\n Session Key: "<< append.str()<<endl;
+		cout<< "\n IV: " <<IV<<endl;
+	}
 /**********
 Close everything that was opened
 **********/
 
 	//Close all the ofstream  
+	outIV.close();
 	outSessionKey.close();
 	outCipheredText.close();
 	outCipheredText.close();
